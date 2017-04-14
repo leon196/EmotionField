@@ -14,6 +14,8 @@ define(['gl', 'twgl', 'utils/loader'], function(gl, twgl, loader) {
 		// 'LineBuilding': 'lines/LineBuilding',
 		'MeshFullScreen': 'meshes/MeshFullScreen',
 		'Video': 'meshes/Video',
+		'Buffer': 'meshes/Buffer',
+		'OpticalFlow': 'meshes/OpticalFlow',
 		// 'MeshLandscape': 'meshes/MeshLandscape',
 		// 'MeshRoad': 'meshes/MeshRoad',
 		// 'MeshLit': 'meshes/MeshLit',

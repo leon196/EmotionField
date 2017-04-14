@@ -33,10 +33,6 @@ function (gl, twgl, assets, Camera, Entity, FrameBuffer, uniforms, createCubeEnt
 			camera.update(time);
 			video.update(time);
 
-			uniforms.u_video = video.texture;
-			uniforms.u_videoResolution = video.resolution;
-			uniforms.u_currentFrame = video.currentFrame.getTexture();
-
 			// draw
 			frameBuffer.recordStart();
 

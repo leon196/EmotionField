@@ -1,7 +1,8 @@
 define(['gl', 'twgl'], function(gl, twgl)
 {
 	function FrameBuffer() {
-		this.buffer = twgl.createFramebufferInfo(gl);
+		this.buffers = [twgl.createFramebufferInfo(gl), twgl.createFramebufferInfo(gl)];
+		this.current = 0;
 	}
 
 	FrameBuffer.prototype.recordStop = function ()
@@ -11,12 +12,17 @@ define(['gl', 'twgl'], function(gl, twgl)
 
 	FrameBuffer.prototype.recordStart = function ()
 	{
-		twgl.bindFramebufferInfo(gl, this.buffer);
+		twgl.bindFramebufferInfo(gl, this.buffers[this.current]);
 	};
 
 	FrameBuffer.prototype.getTexture = function ()
 	{
-		return this.buffer.attachments[0];
+		return this.buffers[this.current].attachments[0];
+	};
+
+	FrameBuffer.prototype.swap = function ()
+	{
+		this.current = (this.current + 1) % 2;
 	};
 
 	return FrameBuffer;

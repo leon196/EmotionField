@@ -1,4 +1,4 @@
-define(['gl', 'engine/FrameBuffer', 'engine/Entity', 'assets', 'geometries/createFullScreenQuad'], function(gl, FrameBuffer, Entity, assets, createFullScreenQuad) {
+define(['gl', 'engine/FrameBuffer', 'engine/Entity', 'assets', 'geometries/createFullScreenQuad', 'engine/uniforms'], function(gl, FrameBuffer, Entity, assets, createFullScreenQuad, uniforms) {
 
 	function Video (videoSrc)
 	{
@@ -19,9 +19,27 @@ define(['gl', 'engine/FrameBuffer', 'engine/Entity', 'assets', 'geometries/creat
 		this.texture = null;
 		this.currentFrame = new FrameBuffer();
 		this.previousFrame = new FrameBuffer();
+		this.opticalFlowFrame = new FrameBuffer();
 		this.frameFiredAt = 0;
 
 		this.quadVideo = new Entity(createFullScreenQuad(), assets.shaders.Video);
+		this.quadBuffer = new Entity(createFullScreenQuad(), assets.shaders.Buffer);
+		this.quadOpticalFlow = new Entity(createFullScreenQuad(), assets.shaders.OpticalFlow);
+
+
+		this.opticalFlowFrame.recordStart();
+		gl.disable(gl.DEPTH_TEST);
+		gl.disable(gl.CULL_FACE);
+		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+		gl.clearColor(0,0,0,1);
+		this.opticalFlowFrame.recordStop();
+		this.opticalFlowFrame.swap();
+		this.opticalFlowFrame.recordStart();
+		gl.disable(gl.DEPTH_TEST);
+		gl.disable(gl.CULL_FACE);
+		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+		gl.clearColor(0,0,0,1);
+		this.opticalFlowFrame.recordStop();
 	}
 
 	Video.prototype.isLoaded = function ()
@@ -61,19 +79,44 @@ define(['gl', 'engine/FrameBuffer', 'engine/Entity', 'assets', 'geometries/creat
 			gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
 			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.element);
 
+			uniforms.u_video = this.texture;
+			uniforms.u_videoResolution = this.resolution;
+
 			if (this.frameFiredAt + this.delay < time) {
 				this.frameFiredAt = time;
 
-				this.currentFrame.recordStart();
+				uniforms.u_currentFrame = this.currentFrame.getTexture();
+				uniforms.u_previousFrame = this.previousFrame.getTexture();
 
+				this.previousFrame.recordStart();
 				gl.disable(gl.DEPTH_TEST);
 				gl.disable(gl.CULL_FACE);
 				gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 				gl.clearColor(0,0,0,1);
+				this.quadBuffer.draw();
+				this.previousFrame.recordStop();
 
+				//
+
+				this.currentFrame.recordStart();
+				gl.disable(gl.DEPTH_TEST);
+				gl.disable(gl.CULL_FACE);
+				gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+				gl.clearColor(0,0,0,1);
 				this.quadVideo.draw();
-
 				this.currentFrame.recordStop();
+
+				//
+				uniforms.u_opticalFlowFrame = this.opticalFlowFrame.getTexture();
+				this.opticalFlowFrame.swap();
+
+				this.opticalFlowFrame.recordStart();
+				gl.disable(gl.DEPTH_TEST);
+				gl.disable(gl.CULL_FACE);
+				gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+				gl.clearColor(0,0,0,1);
+				this.quadOpticalFlow.draw();
+				this.opticalFlowFrame.recordStop();
 			}
 		}
 	}
